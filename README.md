@@ -39,7 +39,7 @@ npm-skills add lodash
 |---------|-------------|
 | `npm-skills add <package>` | Generate and install a skill for an npm package |
 | `npm-skills remove <package>` | Remove a skill and uninstall it from agents |
-| `npm-skills upgrade <package>` | Upgrade a skill to the package's latest version |
+| `npm-skills upgrade <package[@version]>` | Upgrade a skill to the latest or a specified version |
 | `npm-skills list` | List all registered npm skills |
 
 ## Examples
@@ -47,6 +47,9 @@ npm-skills add lodash
 ```bash
 # Add lodash skill
 npx npm-skills add lodash
+
+# Add a specific version of a package
+npx npm-skills add lodash@4.17.21
 
 # Add a scoped package
 npx npm-skills add @types/node
@@ -56,6 +59,9 @@ npx npm-skills list
 
 # Upgrade to latest version
 npx npm-skills upgrade lodash
+
+# Upgrade to a specific version
+npx npm-skills upgrade lodash@4.17.21
 
 # Remove a skill
 npx npm-skills remove lodash

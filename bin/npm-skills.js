@@ -10,7 +10,7 @@ npm-skills — convert npm packages into installable AI agent skills
 Usage:
   npm-skills add <package>       Generate and install a skill for an npm package
   npm-skills remove <package>    Remove a skill and uninstall it from agents
-  npm-skills upgrade <package>   Upgrade a skill to the package's latest version
+  npm-skills upgrade <package[@version]>  Upgrade a skill to the latest or a specified version
   npm-skills list                List all registered npm skills
 
 Options:

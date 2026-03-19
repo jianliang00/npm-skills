@@ -101,4 +101,4 @@ The system has three layers:
 
 ## License
 
-MIT
+Apache-2.0

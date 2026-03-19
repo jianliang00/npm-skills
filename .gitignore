@@ -1,0 +1,5 @@
+# Generated skill output — users will add this per-project
+.npm-skills/skills/
+
+# npm
+node_modules/

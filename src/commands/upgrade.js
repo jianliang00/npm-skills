@@ -5,8 +5,8 @@ const path = require('node:path');
 const { execSync } = require('node:child_process');
 const { fetchPackageInfo, generateSkillContent } = require('../generator');
 const { addEntry, loadRegistry } = require('../registry');
-
-const SKILLS_BASE = '.npm-skills/skills';
+const { installPackage } = require('../installer');
+const { getGlobalDir, getSkillsDir } = require('../paths');
 
 /**
  * Parse a package argument that may contain an optional version specifier.
@@ -50,7 +50,8 @@ function upgrade(args, { cwd = process.cwd() } = {}) {
 
   const { packageName, targetSpec } = parsePackageSpec(rawArg);
 
-  const registry = loadRegistry(cwd);
+  const globalDir = getGlobalDir();
+  const registry = loadRegistry(globalDir);
   const entry = registry.packages[packageName];
   const oldVersion = entry ? entry.version : '(unknown)';
 
@@ -59,14 +60,18 @@ function upgrade(args, { cwd = process.cwd() } = {}) {
     : `info for version ${targetSpec.slice(targetSpec.lastIndexOf('@') + 1)}`;
   console.log(`\n📦 Fetching ${fetchLabel} for "${packageName}" …`);
   const info = fetchPackageInfo(targetSpec);
+
+  console.log(`⬇  Installing "${targetSpec}" to ~/.npm-skills/packages/ …`);
+  installPackage(targetSpec);
+
   const { skillName, content } = generateSkillContent(info);
 
   if (entry && entry.version === info.version) {
     console.log(`ℹ  "${skillName}" is already at the latest version (${info.version}).`);
   }
 
-  // Overwrite the SKILL.md
-  const skillDir = path.join(cwd, SKILLS_BASE, skillName);
+  // Overwrite the SKILL.md in the global skills directory
+  const skillDir = path.join(getSkillsDir(), skillName);
   fs.mkdirSync(skillDir, { recursive: true });
   fs.writeFileSync(path.join(skillDir, 'SKILL.md'), content, 'utf8');
   console.log(`✏  Updated SKILL.md for "${skillName}"`);
@@ -82,7 +87,7 @@ function upgrade(args, { cwd = process.cwd() } = {}) {
     console.warn(`  Run manually: npx skills add "${skillDir}"`);
   }
 
-  addEntry(packageName, { skillName, version: info.version }, cwd);
+  addEntry(packageName, { skillName, version: info.version }, globalDir);
   console.log(
     `✅ Upgraded "${skillName}" from ${oldVersion} → ${info.version}`
   );

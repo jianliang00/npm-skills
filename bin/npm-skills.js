@@ -3,6 +3,7 @@
 
 const { parseArgs } = require('node:util');
 const { listEntries } = require('../src/registry');
+const { getGlobalDir } = require('../src/paths');
 
 const HELP = `
 npm-skills — convert npm packages into installable AI agent skills
@@ -12,6 +13,9 @@ Usage:
   npm-skills remove <package>    Remove a skill and uninstall it from agents
   npm-skills upgrade <package[@version]>  Upgrade a skill to the latest or a specified version
   npm-skills list                List all registered npm skills
+  npm-skills run <bin> [-- args] Run a CLI binary from an installed skill package
+  npm-skills exec -e "<code>"    Execute inline JS/ESM using installed skill packages
+  npm-skills exec <script>       Execute a script file using installed skill packages
 
 Options:
   --help, -h    Show this help message
@@ -50,7 +54,7 @@ switch (command) {
   }
   case 'list':
   case 'ls': {
-    const entries = listEntries();
+    const entries = listEntries(getGlobalDir());
     if (entries.length === 0) {
       console.log('No npm skills installed. Run: npm-skills add <package>');
     } else {
@@ -59,6 +63,16 @@ switch (command) {
         console.log(`  ${e.skillName}  (${e.packageName}@${e.version})`);
       }
     }
+    break;
+  }
+  case 'run': {
+    const { run } = require('../src/commands/run');
+    run(rest);
+    break;
+  }
+  case 'exec': {
+    const { exec } = require('../src/commands/exec');
+    exec(rest);
     break;
   }
   default:

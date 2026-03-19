@@ -34,9 +34,9 @@ When working with an npm-generated skill:
    authoritative description of what the package does and how to call it.
    Always consult it before writing code.
 
-2. **Install the package first.** npm-generated skills describe packages that
-   must be present in the project. Verify the package appears in `package.json`
-   or install it with `npm install <package>` before use.
+2. **Packages are pre-installed globally.** npm-skills installs each package
+   to `~/.npm-skills/packages/` so they are available from any directory.
+   You can use them directly via `npm-skills run` and `npm-skills exec`.
 
 3. **Use the package's actual public API.** The skill describes the npm
    package's public API. Use the standard `require()` / `import` patterns
@@ -44,6 +44,37 @@ When working with an npm-generated skill:
 
 4. **Check the version.** Skills embed the version they were generated from.
    Ensure your project installs a compatible version.
+
+## Running CLI Tools
+
+If a package provides CLI commands, run them with `npm-skills run`:
+
+```bash
+npm-skills run <bin-name> [-- args...]
+```
+
+Example:
+
+```bash
+npm-skills run prettier -- --write src/
+```
+
+## Running JavaScript Code
+
+Use `npm-skills exec` to run JavaScript that uses installed packages.
+All installed packages are automatically available via `require()` or `import`.
+
+Run inline code:
+
+```bash
+npm-skills exec -e "const _ = require('lodash'); console.log(_.VERSION);"
+```
+
+Run a script file:
+
+```bash
+npm-skills exec my-script.mjs
+```
 
 ## Usage Principles
 
@@ -59,18 +90,21 @@ When working with an npm-generated skill:
 npm-generated skills are managed by the `npm-skills` CLI:
 
 ```bash
-# Add a skill for an npm package
+# Add a skill for an npm package (also installs it to ~/.npm-skills/packages/)
 npx npm-skills add <package>
+
+# Add a skill without installing the package (if already installed manually)
+npx npm-skills add <package> --no-install
 
 # Upgrade a skill to the package's latest version
 npx npm-skills upgrade <package>
 
-# Remove a skill
+# Remove a skill (also uninstalls the package from ~/.npm-skills/packages/)
 npx npm-skills remove <package>
 
 # List all registered npm skills
 npx npm-skills list
 ```
 
-Each command updates both the skill files under `.npm-skills/skills/` and the
-agent installations in the current project.
+Skills and packages are stored globally in `~/.npm-skills/` and work from
+any directory — no project-level setup required.

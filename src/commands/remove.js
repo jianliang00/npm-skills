@@ -5,8 +5,8 @@ const path = require('node:path');
 const { execSync } = require('node:child_process');
 const { toSkillName } = require('../generator');
 const { loadRegistry, removeEntry } = require('../registry');
-
-const SKILLS_BASE = '.npm-skills/skills';
+const { uninstallPackage } = require('../installer');
+const { getGlobalDir, getSkillsDir } = require('../paths');
 
 /**
  * Execute `npm-skills remove <package>`.
@@ -20,18 +20,23 @@ function remove(args, { cwd = process.cwd() } = {}) {
     process.exit(1);
   }
 
-  const registry = loadRegistry(cwd);
+  const globalDir = getGlobalDir();
+  const registry = loadRegistry(globalDir);
   const entry = registry.packages[packageName];
   const skillName = entry ? entry.skillName : toSkillName(packageName);
 
   // Remove skill directory
-  const skillDir = path.join(cwd, SKILLS_BASE, skillName);
+  const skillDir = path.join(getSkillsDir(), skillName);
   if (fs.existsSync(skillDir)) {
     fs.rmSync(skillDir, { recursive: true, force: true });
     console.log(`🗑  Removed skill directory: ${skillDir}`);
   } else {
     console.warn(`⚠ Skill directory not found: ${skillDir}`);
   }
+
+  // Uninstall npm package from global packages dir
+  console.log(`⬇  Uninstalling "${packageName}" from ~/.npm-skills/packages/ …`);
+  uninstallPackage(packageName);
 
   // Uninstall from agents via skills CLI
   try {
@@ -44,7 +49,7 @@ function remove(args, { cwd = process.cwd() } = {}) {
     console.warn(`  Run manually: npx skills remove "${skillName}"`);
   }
 
-  const removed = removeEntry(packageName, cwd);
+  const removed = removeEntry(packageName, globalDir);
   if (removed) {
     console.log(`✅ Removed skill "${skillName}" for ${packageName}`);
   } else {

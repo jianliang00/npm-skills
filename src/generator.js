@@ -1,6 +1,7 @@
 'use strict';
 
 const { execSync } = require('node:child_process');
+const { extractReadmeSummary, extractTypeSignatures } = require('./extractor');
 
 /**
  * Fetch metadata for an npm package via `npm view`.
@@ -63,6 +64,7 @@ function buildFrontmatter(info) {
     `  package: "${info.name}"`,
     `  version: "${info.version}"`,
     '  generated: true',
+    '  installed: true',
     '---',
   ];
   return lines.join('\n');
@@ -114,6 +116,63 @@ function buildKeywordsSection(info) {
 }
 
 /**
+ * Build the "How to Use This Package" section showing npm-skills run/exec usage.
+ * @param {object} info
+ * @returns {string}
+ */
+function buildHowToUseSection(info) {
+  const lines = ['\n## How to Use This Package\n'];
+
+  if (info.bin) {
+    const entries =
+      typeof info.bin === 'string'
+        ? [[info.name, info.bin]]
+        : Object.entries(info.bin);
+    if (entries.length > 0) {
+      lines.push('Run CLI commands via `npm-skills run`:\n');
+      for (const [cmd] of entries) {
+        lines.push('```bash', `npm-skills run ${cmd} -- [args]`, '```');
+      }
+      lines.push('');
+    }
+  }
+
+  lines.push('Run inline JavaScript that uses this package:\n');
+  lines.push(
+    '```bash',
+    `npm-skills exec -e "const pkg = require('${info.name}'); console.log(pkg);"`,
+    '```'
+  );
+  lines.push('');
+  lines.push('Run a script file that uses this package:\n');
+  lines.push('```bash', 'npm-skills exec script.mjs', '```', '');
+
+  return lines.join('\n');
+}
+
+/**
+ * Build the README usage examples section from the installed package.
+ * @param {string} packageName
+ * @returns {string}
+ */
+function buildReadmeSection(packageName) {
+  const summary = extractReadmeSummary(packageName);
+  if (!summary) return '';
+  return `\n## Usage Examples (from README)\n\n${summary}\n`;
+}
+
+/**
+ * Build the key API reference section from the installed package's type definitions.
+ * @param {string} packageName
+ * @returns {string}
+ */
+function buildTypeSignatureSection(packageName) {
+  const sigs = extractTypeSignatures(packageName);
+  if (!sigs) return '';
+  return `\n## Key API Reference\n\n\`\`\`typescript\n${sigs}\n\`\`\`\n`;
+}
+
+/**
  * Generate a complete SKILL.md document for an npm package.
  * @param {object} info - npm view JSON for the package
  * @returns {{ skillName: string, content: string }}
@@ -139,6 +198,7 @@ function generateSkillContent(info) {
     `- **Version**: \`${info.version}\``,
     `- **Registry**: [npm](https://www.npmjs.com/package/${info.name})`,
     repoUrl ? `- **Repository**: ${repoUrl.replace(/^git\+/, '')}` : '',
+    `- **Status**: ✅ Installed locally`,
     '',
     '## Installation',
     '',
@@ -148,8 +208,11 @@ function generateSkillContent(info) {
   ].filter((line) => line !== undefined);
 
   let content = sections.join('\n');
+  content += buildHowToUseSection(info);
   content += buildCliSection(info);
   content += buildApiSection(info);
+  content += buildTypeSignatureSection(info.name);
+  content += buildReadmeSection(info.name);
   content += buildKeywordsSection(info);
 
   return { skillName, content };

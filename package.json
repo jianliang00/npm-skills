@@ -1,0 +1,28 @@
+{
+  "name": "npm-skills",
+  "version": "0.1.0",
+  "description": "Convert npm packages into installable AI agent skills",
+  "bin": {
+    "npm-skills": "./bin/npm-skills.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "skills"
+  ],
+  "scripts": {
+    "test": "node --test 'test/**/*.test.js'"
+  },
+  "engines": {
+    "node": ">=18.3.0"
+  },
+  "keywords": [
+    "skills",
+    "ai-agents",
+    "npm",
+    "claude",
+    "codex",
+    "cursor"
+  ],
+  "license": "MIT"
+}
